@@ -1,29 +1,28 @@
-function [ files ] = scan_bin( rootDir )
+function [ files ] = scan_bin( root_dir )
 
-%%% This script is used to serach the .bin file that records raw binary data
-%%% data produced by FMCW radar
+%%% This script is used to search .bin files that records raw binary data
+%%% collected by FMCW radars
 
 files={};
-if rootDir(end)~='/'
-    rootDir=[rootDir,'/'];
+if root_dir(end)~='/'
+    root_dir=[root_dir,'/'];
 end
-fileList=dir(rootDir); 
-n=length(fileList);
-cntpic=0;
-for i=1:n
-    if strcmp(fileList(i).name,'.')==1||strcmp(fileList(i).name,'..')==1
+file_list=dir(root_dir); 
+cnt_pic=0;
+for i=1:length(file_list)
+    if strcmp(file_list(i).name,'.')==1||strcmp(file_list(i).name,'..')==1
         continue;
     else
-        fileList(i).name;
-        if ~fileList(i).isdir 
-            if strcmp(fileList(i).name(end-2:end),'bin')==0
+        file_list(i).name;
+        if ~file_list(i).isdir 
+            if strcmp(file_list(i).name(end-2:end),'bin')==0
                 continue;
             end
-            full_name=[rootDir,fileList(i).name];
-            cntpic=cntpic+1;
-            files(cntpic)={full_name};
+            full_name=[root_dir,file_list(i).name];
+            cnt_pic=cnt_pic+1;
+            files(cnt_pic)={full_name};
         else
-            files=[files,scan_bin([rootDir,fileList(i).name])];
+            files=[files,scan_bin([root_dir,file_list(i).name])];
         end
     end
 end
