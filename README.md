@@ -3,6 +3,8 @@ This is the repo for SenSys 2022 paper: "Synthesized Millimeter-Waves for Human 
 
 Authors: Xiaotong Zhang, Zhenjiang Li, Jin Zhang
 
+**PDF:** <a href="https://dl.acm.org/doi/10.1145/3560905.3568542"> SynMotion</a>
+
 # Citation
 
 If you find our work useful in your research, please consider citing:
