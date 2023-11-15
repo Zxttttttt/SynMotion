@@ -1,52 +1,47 @@
-function [totalHeatmap] = fft_2d(filePath,timeLength)
+function [ret_heatmaps] = fft_2d(file_name,time_length)
 
 %%% This function is used to generate 2D heatmaps
 %%% from raw FMCW data
 
-nAdcSamples = 256;
-nChirps = 128; % number of chirps in one frame
-frameRate=20;
-chirpCount=timeLength*frameRate*nChirps;
+n_adc_samples = 256;  % number of adc samples in one chirp
+n_chirps = 128; % number of chirps in one frame
+frame_rate=20; % number of frames per second
+cnt_chirp=time_length*frame_rate*n_chirps;
 
-rawRadarData=read1443Data(filePath);
-
-
-tx1Data=zeros(4,timeLength*frameRate*nChirps*nAdcSamples);
-tx2Data=zeros(4,timeLength*frameRate*nChirps*nAdcSamples);
-for i=1:chirpCount
-    tx1Data(:,1+(i-1)*nAdcSamples:nAdcSamples*i)=rawRadarData(:,1+(i-1)*nAdcSamples*2:nAdcSamples+(i-1)*nAdcSamples*2);
-    tx2Data(:,1+(i-1)*nAdcSamples:nAdcSamples*i)=rawRadarData(:,nAdcSamples+1+(i-1)*nAdcSamples*2:nAdcSamples*2+(i-1)*nAdcSamples*2);
-
+% load and reform raw data
+raw_data=read1443Data(file_name);
+tx1_data=zeros(4,time_length*frame_rate*n_chirps*n_adc_samples);
+tx2_data=zeros(4,time_length*frame_rate*n_chirps*n_adc_samples);
+for i=1:cnt_chirp
+    tx1_data(:,1+(i-1)*n_adc_samples:n_adc_samples*i)=raw_data(:,1+(i-1)*n_adc_samples*2:n_adc_samples+(i-1)*n_adc_samples*2);
+    tx2_data(:,1+(i-1)*n_adc_samples:n_adc_samples*i)=raw_data(:,n_adc_samples+1+(i-1)*n_adc_samples*2:n_adc_samples*2+(i-1)*n_adc_samples*2);
 end
-
-rawRadarData=[tx2Data;tx1Data];
-
+raw_data=[tx2_data;tx1_data];
 clear Tx1_data
 clear Tx2_data
 
-denoisedRadarData=zeros(8,(timeLength*frameRate-1)*nChirps*nAdcSamples);
-for i=1:timeLength*frameRate-1
-    denoisedRadarData(:,1+(i-1)*nAdcSamples*nChirps:nAdcSamples*nChirps*i)=rawRadarData(:,1+i*nAdcSamples*nChirps:(i+1)*nAdcSamples*nChirps)-rawRadarData(:,1+(i-1)*nAdcSamples*nChirps:(i)*nAdcSamples*nChirps);
+% static removal
+denoised_data=zeros(8,(time_length*frame_rate-1)*n_chirps*n_adc_samples);
+for i=1:time_length*frame_rate-1
+    denoised_data(:,1+(i-1)*n_adc_samples*n_chirps:n_adc_samples*n_chirps*i)=raw_data(:,1+i*n_adc_samples*n_chirps:(i+1)*n_adc_samples*n_chirps)-raw_data(:,1+(i-1)*n_adc_samples*n_chirps:(i)*n_adc_samples*n_chirps);
 end
 
-totalHeatmap=zeros(timeLength*frameRate-1,nAdcSamples/2,nChirps);
-for i=1:timeLength*frameRate-1
-    thisChirp=denoisedRadarData(:,1+(i-1)*nAdcSamples*nChirps:nAdcSamples+(i-1)*nAdcSamples*nChirps);
-    thisChirp=thisChirp.';
-    thisHeatmap=fft2(thisChirp,nAdcSamples,nChirps);
-    thisHeatmap=fftshift(thisHeatmap);
-    thisHeatmap=abs(thisHeatmap);
-    thisHeatmap=thisHeatmap(129:end,:);
-    thisHeatmap(end-20:end,:)=0;
-
-    m=max(max(thisHeatmap));
-    [row,colomn]=find(thisHeatmap==m);
-    thisHeatmap(1:row-10,:)=0;
-    thisHeatmap(row+10:end,:)=0;
-    thisHeatmap=rescale(thisHeatmap);
-    thisHeatmap(thisHeatmap<0.05)=0;
-    thisHeatmap=rescale(thisHeatmap);
-    totalHeatmap(i,:,:)=thisHeatmap;
+% generate heatmaps
+ret_heatmaps=zeros(time_length*frame_rate-1,n_adc_samples/2,n_chirps);
+for i=1:time_length*frame_rate-1
+    chirp=denoised_data(:,1+(i-1)*n_adc_samples*n_chirps:n_adc_samples+(i-1)*n_adc_samples*n_chirps);
+    chirp=chirp.';
+    heatmap=abs(fftshift(fft2(chirp,n_adc_samples,n_chirps)));
+    heatmap=heatmap(129:end,:);
+    heatmap(end-20:end,:)=0;
+    m=max(max(heatmap));
+    [row,colomn]=find(heatmap==m);
+    heatmap(1:row-10,:)=0;
+    heatmap(row+10:end,:)=0;
+    heatmap=rescale(heatmap);
+    heatmap(heatmap<0.05)=0;
+    heatmap=rescale(heatmap);
+    ret_heatmaps(i,:,:)=heatmap;
 end
 end
 
