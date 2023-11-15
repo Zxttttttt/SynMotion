@@ -1,6 +1,6 @@
 function [ files ] = scan_opti( root_dir )
 
-%%% This script is used to search .csv files that records 3D coordinates
+%%% This script is used to search .csv files that record 3D coordinates
 %%% raw data collected by OptiTrack
 
 files={};

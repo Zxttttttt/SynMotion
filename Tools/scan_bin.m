@@ -1,6 +1,6 @@
 function [ files ] = scan_bin( root_dir )
 
-%%% This script is used to search .bin files that records raw binary data
+%%% This script is used to search .bin files that record raw binary data
 %%% collected by FMCW radars
 
 files={};
